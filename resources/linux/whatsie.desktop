@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Whatsie
+Comment=Whatsapp Web Client on Linux
+Exec=whatsie %U
+Icon=whatsie
+Terminal=false
+Categories=Network;
+StartupWMClass=Whatsie

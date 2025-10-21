@@ -1,40 +1,27 @@
 #include "AppWindow.h"
+
 #include <QApplication>
 #include <QCloseEvent>
-#include <QDir>
-#include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
 #include <QScreen>
 #include <QShortcut>
+#include <QSystemTrayIcon>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineView>
-#include <iostream>
-#include <qaction.h>
-#include <qcoreapplication.h>
-#include <qicon.h>
-#include <qmenu.h>
-#include <qobject.h>
-#include <qsystemtrayicon.h>
-#include <qwebenginepage.h>
 
-static QString resourceIcon(const QString &name) {
-  const QString base = QCoreApplication::applicationDirPath();
-  const QString rel =
-      QDir(base).filePath(QStringLiteral("resources/icons/") + name);
-  std::cout << rel.toStdString() << "\n";
-  return QFileInfo::exists(rel) ? rel : QString();
+static QIcon themeOrFallback(const char *themeName,
+                             const char *fallbackResource) {
+  QIcon themed = QIcon::fromTheme(themeName);
+  if (!themed.isNull())
+    return themed;
+  return QIcon(QLatin1String(fallbackResource));
 }
 
 AppWindow::AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
                      QWidget *parent)
     : QMainWindow(parent), m_profile(profile), m_page(page) {
-
-  m_iconPathNormal = resourceIcon("tray.png");
-  m_iconPathUnread = resourceIcon("tray_unread.png");
-
-  std::cout << m_iconPathNormal.toStdString() << "\n";
 
   setupUi();
   setupShortcuts();
@@ -53,17 +40,14 @@ AppWindow::~AppWindow() { destroyDevTools(); }
 void AppWindow::setupUi() {
   m_view = new QWebEngineView(this);
   m_view->setPage(m_page);
-
   setCentralWidget(m_view);
+
   setWindowTitle(QStringLiteral("Whatsie"));
+  setWindowIcon(themeOrFallback("whatsie", ":/icons/whatsie.png"));
   resize(1100, 760);
 
   const QRect avail = screen()->availableGeometry();
   move(avail.center() - rect().center());
-
-  if (!m_iconPathNormal.isEmpty()) {
-    setWindowIcon(QIcon(m_iconPathNormal));
-  }
 }
 
 void AppWindow::setupShortcuts() {
@@ -98,11 +82,7 @@ void AppWindow::setupTray() {
   auto *actQuit = m_trayMenu->addAction(tr("Quit"));
   connect(actQuit, &QAction::triggered, qApp, &QApplication::quit);
 
-  if (!m_iconPathNormal.isEmpty())
-    m_tray->setIcon(QIcon(m_iconPathNormal));
-  else
-    m_tray->setIcon(windowIcon());
-
+  m_tray->setIcon(themeOrFallback("whatsie", ":/icons/tray.png"));
   m_tray->setToolTip(tr("Whatsie"));
   m_tray->setContextMenu(m_trayMenu);
   m_tray->show();
@@ -192,10 +172,10 @@ void AppWindow::hideToTray() { hide(); }
 
 int AppWindow::extractUnreadCount(const QString &title) {
   if (title.size() >= 3 && title.startsWith('(')) {
-    int end = title.indexOf(')');
+    const int end = title.indexOf(')');
     if (end > 1) {
       bool ok = false;
-      int n = title.mid(1, end - 1).toInt(&ok);
+      const int n = title.mid(1, end - 1).toInt(&ok);
       if (ok)
         return n;
     }
@@ -207,17 +187,14 @@ void AppWindow::updateTrayUnread(int count) {
   if (!m_tray)
     return;
 
-  if (count > 0 && !m_iconPathUnread.isEmpty())
-    m_tray->setIcon(QIcon(m_iconPathUnread));
-  else if (!m_iconPathNormal.isEmpty())
-    m_tray->setIcon(QIcon(m_iconPathNormal));
-  else
-    m_tray->setIcon(windowIcon());
-
-  if (count > 0)
+  if (count > 0) {
+    m_tray->setIcon(
+        themeOrFallback("whatsie-unread", ":/icons/tray_unread.png"));
     m_tray->setToolTip(tr("Whatsie — %1 unread").arg(count));
-  else
+  } else {
+    m_tray->setIcon(themeOrFallback("whatsie", ":/icons/tray.png"));
     m_tray->setToolTip(tr("Whatsie"));
+  }
 }
 
 void AppWindow::onTitleChanged(const QString &title) {

@@ -1,0 +1,11 @@
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/whatsie.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/package.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/package_source.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/edit_cache.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/rebuild_cache.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/list_install_components.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/install.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/install/local.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/install/strip.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/whatsie_autogen_timestamp_deps.dir
+/mnt/disk-2/Media/Projects/C++/whatsie/src/build/CMakeFiles/whatsie_autogen.dir

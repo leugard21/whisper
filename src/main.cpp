@@ -2,8 +2,11 @@
 #include "ClientPage.h"
 #include "Downloader.h"
 #include "PermissionHandler.h"
+#include "Settings.h"
+#include "SingleInstance.h"
 #include "WebProfileManager.h"
 #include <QApplication>
+#include <QMessageBox>
 #include <QScreen>
 #include <QWebEngineView>
 
@@ -12,6 +15,12 @@ int main(int argc, char *argv[]) {
   QApplication::setOrganizationName("Whatsie");
   QApplication::setApplicationVersion("0.1.0");
   QApplication app(argc, argv);
+
+  SingleInstance instance(Settings::lockFilePath());
+  if (!instance.tryLock()) {
+    QMessageBox::information(nullptr, "Whatsie", "Whatsie is already running.");
+    return 0;
+  }
 
   WebProfileManager profileMgr;
   auto *profile = profileMgr.profile();

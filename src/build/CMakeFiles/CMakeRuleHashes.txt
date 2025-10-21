@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+31a8ac06f78c0bc2d6c07ec7b92a041a CMakeFiles/whatsie_autogen
+080d2fb47a2d714678ff53a12e70956e whatsie_autogen/3YJK5W5UP7/qrc_resources.cpp
+0038900439b646743b610dca1b737e9d whatsie_autogen/timestamp

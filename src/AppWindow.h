@@ -47,7 +47,5 @@ private:
   QPointer<QSystemTrayIcon> m_tray;
   QPointer<QMenu> m_trayMenu;
 
-  QString m_iconPathNormal;
-  QString m_iconPathUnread;
   bool m_shownMinimizeHint = false;
 };
