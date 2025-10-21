@@ -1,0 +1,15 @@
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/*.user
+/*.pro.user
+/*.creator.*
+
+.DS_Store
+Thumbs.db
+
+*.qmlc
+*.jsc
+
+.vscode/
+.idea/
