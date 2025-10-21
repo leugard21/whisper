@@ -15,6 +15,8 @@ add_executable(whatsie
     src/WebProfileManager.cpp
     src/ClientPage.cpp
     src/PermissionHandler.cpp
+    src/AppWindow.cpp
+    src/Downloader.cpp
 )
 
 target_link_libraries(whatsie PRIVATE

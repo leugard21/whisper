@@ -1,4 +1,6 @@
+#include "AppWindow.h"
 #include "ClientPage.h"
+#include "Downloader.h"
 #include "PermissionHandler.h"
 #include "WebProfileManager.h"
 #include <QApplication>
@@ -12,10 +14,11 @@ int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
   WebProfileManager profileMgr;
-  auto *page = new ClientPage(profileMgr.profile());
+  auto *profile = profileMgr.profile();
+
+  auto *page = new ClientPage(profile);
 
   PermissionHandler perms;
-
 #if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
   QObject::connect(
       page, &QWebEnginePage::permissionRequested, &perms,
@@ -28,15 +31,13 @@ int main(int argc, char *argv[]) {
       });
 #endif
 
-  auto *view = new QWebEngineView;
-  view->setPage(page);
-  view->setWindowTitle("Whatsie");
-  view->resize(1100, 760);
-  view->setUrl(QUrl("https://web.whatsapp.com/"));
+  Downloader dl;
+  dl.attach(profile);
 
-  const QRect avail = view->screen()->availableGeometry();
-  view->move(avail.center() - view->rect().center());
-  view->show();
+  AppWindow win(profile, page);
+  win.show();
+
+  page->load(QUrl("https://web.whatsapp.com/"));
 
   return app.exec();
 }
