@@ -23,6 +23,7 @@ sudo pacman -U whisper-*.pkg.tar.zst
 ### Debian / Ubuntu
 
 ```bash
+cd build
 cpack -G DEB -B build
 sudo dpkg -i build/whisper_*.deb
 sudo apt -f install
@@ -31,6 +32,7 @@ sudo apt -f install
 ### Fedora / openSUSE / RHEL
 
 ```bash
+cd build
 cpack -G RPM -B build
 sudo dnf install ./build/whisper-*.x86_64.rpm
 sudo zypper install ./build/whisper-*.x86_64.rpm
