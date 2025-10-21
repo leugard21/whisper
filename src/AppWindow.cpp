@@ -5,11 +5,20 @@
 #include <QIcon>
 #include <QMenu>
 #include <QScreen>
+#include <QSettings>
 #include <QShortcut>
 #include <QSystemTrayIcon>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineView>
+#include <qaction.h>
+#include <qapplication.h>
+#include <qevent.h>
+#include <qmainwindow.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qsettings.h>
+#include <qstringview.h>
 
 static QIcon themeOrFallback(const char *themeName,
                              const char *fallbackResource) {
@@ -24,6 +33,7 @@ AppWindow::AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
     : QMainWindow(parent), m_profile(profile), m_page(page) {
 
   setupUi();
+  restoreWindowStateFromSettings();
   setupShortcuts();
   setupTray();
 
@@ -71,8 +81,8 @@ void AppWindow::setupTray() {
   m_tray = new QSystemTrayIcon(this);
   m_trayMenu = new QMenu(this);
 
-  auto *actShow = m_trayMenu->addAction(tr("Show/Hide"));
-  connect(actShow, &QAction::triggered, this, &AppWindow::showFromTray);
+  m_actShowHide = m_trayMenu->addAction(tr("Show"));
+  connect(m_actShowHide, &QAction::triggered, this, &AppWindow::showFromTray);
 
   m_trayMenu->addSeparator();
   auto *actReload = m_trayMenu->addAction(tr("Reload"));
@@ -92,6 +102,7 @@ void AppWindow::setupTray() {
 }
 
 void AppWindow::closeEvent(QCloseEvent *e) {
+  saveWindowStateToSettings();
   if (m_tray) {
     hideToTray();
     if (!m_shownMinimizeHint) {
@@ -107,19 +118,50 @@ void AppWindow::closeEvent(QCloseEvent *e) {
   QMainWindow::closeEvent(e);
 }
 
+void AppWindow::moveEvent(QMoveEvent *e) {
+  QMainWindow::moveEvent(e);
+  if (!isMaximized()) {
+    QSettings s;
+    s.setValue("ui/geometry", saveGeometry());
+  }
+}
+
+void AppWindow::resizeEvent(QResizeEvent *e) {
+  QMainWindow::resizeEvent(e);
+  if (!isMaximized()) {
+    QSettings s;
+    s.setValue("ui/geometry", saveGeometry());
+  }
+}
+
+void AppWindow::restoreWindowStateFromSettings() {
+  QSettings s;
+  const bool wasMax = s.value("ui/maximized", false).toBool();
+  const QByteArray geom = s.value("ui/geometry").toByteArray();
+
+  if (!wasMax && !geom.isEmpty()) {
+    restoreGeometry(geom);
+  }
+  if (wasMax) {
+    setWindowState(windowState() | Qt::WindowMaximized);
+  }
+}
+
+void AppWindow::saveWindowStateToSettings() {
+  QSettings s;
+  const bool maxNow = isMaximized();
+  s.setValue("ui/maximized", maxNow);
+
+  if (!maxNow) {
+    s.setValue("ui/geometry", saveGeometry());
+  } else if (!s.contains("ui/geometry")) {
+    s.setValue("ui/geometry", saveGeometry());
+  }
+}
+
 void AppWindow::reloadPage() {
   if (m_page)
     m_page->triggerAction(QWebEnginePage::Reload);
-}
-
-void AppWindow::goBack() {
-  if (m_page)
-    m_page->triggerAction(QWebEnginePage::Back);
-}
-
-void AppWindow::goForward() {
-  if (m_page)
-    m_page->triggerAction(QWebEnginePage::Forward);
 }
 
 void AppWindow::createDevTools() {
@@ -157,18 +199,41 @@ void AppWindow::toggleDevTools() {
 void AppWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason) {
   if (reason == QSystemTrayIcon::Trigger ||
       reason == QSystemTrayIcon::DoubleClick) {
-    showFromTray();
+    if (isHidden() || isMinimized()) {
+      showFromTray();
+    } else {
+      hideToTray();
+    }
   }
 }
 
-void AppWindow::showFromTray() {
-  if (isHidden())
+void AppWindow::restoreFromTray() {
+  setWindowState(windowState() & ~Qt::WindowMinimized);
+
+  QSettings s;
+  const bool shouldMax = s.value("ui/maximized", false).toBool();
+  if (shouldMax) {
+    showMaximized();
+  } else {
     showNormal();
+  }
+
   raise();
   activateWindow();
+  QApplication::setActiveWindow(this);
 }
 
-void AppWindow::hideToTray() { hide(); }
+void AppWindow::showFromTray() {
+  restoreFromTray();
+  if (m_actShowHide)
+    m_actShowHide->setText(tr("Hide"));
+}
+
+void AppWindow::hideToTray() {
+  hide();
+  if (m_actShowHide)
+    m_actShowHide->setText(tr("Show"));
+}
 
 int AppWindow::extractUnreadCount(const QString &title) {
   if (title.size() >= 3 && title.startsWith('(')) {

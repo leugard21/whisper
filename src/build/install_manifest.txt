@@ -1,4 +1,0 @@
-/usr/bin/whatsie
-/usr/share/applications/whatsie.desktop
-/usr/share/icons/hicolor/256x256/apps/whatsie.png
-/usr/share/icons/hicolor/scalable/apps/whatsie.svg
