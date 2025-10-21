@@ -1,11 +1,8 @@
+#include "WebProfileManager.h"
 #include <QApplication>
 #include <QScreen>
-#include <QWebEngineProfile>
+#include <QWebEnginePage>
 #include <QWebEngineView>
-#include <qapplication.h>
-#include <qpaintdevice.h>
-#include <qurl.h>
-#include <qwebengineview.h>
 
 int main(int argc, char **argv) {
   QApplication::setApplicationName("Whatsie");
@@ -13,7 +10,11 @@ int main(int argc, char **argv) {
   QApplication::setApplicationVersion("0.0.1.0");
   QApplication app(argc, argv);
 
+  WebProfileManager profileMgr;
+  auto *page = new QWebEnginePage(profileMgr.profile());
+
   auto *view = new QWebEngineView;
+  view->setPage(page);
   view->setWindowTitle("Whatsie");
   view->resize(1100, 760);
   view->setUrl(QUrl("https://web.whatsapp.com/"));
