@@ -38,6 +38,7 @@ private:
   void setupUi();
   void setupShortcuts();
   void setupTray();
+  void updateShowHideLabel();
   void createDevTools();
   void destroyDevTools();
   void updateTrayUnread(int count);
@@ -54,4 +55,5 @@ private:
 
   bool m_shownMinimizeHint = false;
   QAction *m_actShowHide = nullptr;
+  QAction *m_actAutostart = nullptr;
 };

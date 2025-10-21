@@ -1,9 +1,13 @@
 #include "AppWindow.h"
+#include "AutostartManager.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QIcon>
 #include <QMenu>
+#include <QMoveEvent>
+#include <QResizeEvent>
 #include <QScreen>
 #include <QSettings>
 #include <QShortcut>
@@ -11,14 +15,6 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineView>
-#include <qaction.h>
-#include <qapplication.h>
-#include <qevent.h>
-#include <qmainwindow.h>
-#include <qnamespace.h>
-#include <qpoint.h>
-#include <qsettings.h>
-#include <qstringview.h>
 
 static QIcon themeOrFallback(const char *themeName,
                              const char *fallbackResource) {
@@ -31,7 +27,6 @@ static QIcon themeOrFallback(const char *themeName,
 AppWindow::AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
                      QWidget *parent)
     : QMainWindow(parent), m_profile(profile), m_page(page) {
-
   setupUi();
   restoreWindowStateFromSettings();
   setupShortcuts();
@@ -64,12 +59,6 @@ void AppWindow::setupShortcuts() {
   auto *sReload = new QShortcut(QKeySequence("Ctrl+R"), this);
   connect(sReload, &QShortcut::activated, this, &AppWindow::reloadPage);
 
-  auto *sBack = new QShortcut(QKeySequence("Alt+Left"), this);
-  connect(sBack, &QShortcut::activated, this, &AppWindow::goBack);
-
-  auto *sForward = new QShortcut(QKeySequence("Alt+Right"), this);
-  connect(sForward, &QShortcut::activated, this, &AppWindow::goForward);
-
   auto *sDevTools = new QShortcut(QKeySequence("Ctrl+Shift+I"), this);
   connect(sDevTools, &QShortcut::activated, this, &AppWindow::toggleDevTools);
 }
@@ -83,6 +72,12 @@ void AppWindow::setupTray() {
 
   m_actShowHide = m_trayMenu->addAction(tr("Show"));
   connect(m_actShowHide, &QAction::triggered, this, &AppWindow::showFromTray);
+
+  m_actAutostart = m_trayMenu->addAction(tr("Start on Login"));
+  m_actAutostart->setCheckable(true);
+  m_actAutostart->setChecked(AutostartManager::isEnabled());
+  connect(m_actAutostart, &QAction::toggled, this,
+          [](bool on) { AutostartManager::setEnabled(on); });
 
   m_trayMenu->addSeparator();
   auto *actReload = m_trayMenu->addAction(tr("Reload"));
@@ -103,6 +98,7 @@ void AppWindow::setupTray() {
 
 void AppWindow::closeEvent(QCloseEvent *e) {
   saveWindowStateToSettings();
+
   if (m_tray) {
     hideToTray();
     if (!m_shownMinimizeHint) {
@@ -164,6 +160,16 @@ void AppWindow::reloadPage() {
     m_page->triggerAction(QWebEnginePage::Reload);
 }
 
+void AppWindow::goBack() {
+  if (m_page)
+    m_page->triggerAction(QWebEnginePage::Back);
+}
+
+void AppWindow::goForward() {
+  if (m_page)
+    m_page->triggerAction(QWebEnginePage::Forward);
+}
+
 void AppWindow::createDevTools() {
   if (m_devtoolsView)
     return;
@@ -207,6 +213,13 @@ void AppWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason) {
   }
 }
 
+void AppWindow::updateShowHideLabel() {
+  if (!m_actShowHide)
+    return;
+  m_actShowHide->setText((isHidden() || isMinimized()) ? tr("Show")
+                                                       : tr("Hide"));
+}
+
 void AppWindow::restoreFromTray() {
   setWindowState(windowState() & ~Qt::WindowMinimized);
 
@@ -220,19 +233,16 @@ void AppWindow::restoreFromTray() {
 
   raise();
   activateWindow();
-  QApplication::setActiveWindow(this);
 }
 
 void AppWindow::showFromTray() {
   restoreFromTray();
-  if (m_actShowHide)
-    m_actShowHide->setText(tr("Hide"));
+  updateShowHideLabel();
 }
 
 void AppWindow::hideToTray() {
   hide();
-  if (m_actShowHide)
-    m_actShowHide->setText(tr("Show"));
+  updateShowHideLabel();
 }
 
 int AppWindow::extractUnreadCount(const QString &title) {

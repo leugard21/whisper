@@ -19,6 +19,7 @@ add_executable(whatsie
     src/Downloader.cpp
     src/Settings.cpp
     src/SingleInstance.cpp
+    src/AutostartManager.cpp
     resources/resources.qrc
 )
 
