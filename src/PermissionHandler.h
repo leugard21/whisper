@@ -1,23 +1,24 @@
 #pragma once
-
 #include <QObject>
 #include <QUrl>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+#include <QWebEnginePermission>
+#else
 #include <QWebEnginePage>
+#endif
 
 class PermissionHandler : public QObject {
   Q_OBJECT
-
 public:
   explicit PermissionHandler(QObject *parent = nullptr);
 
-  void handleFeatureRequest(QWebEnginePage *page, const QUrl &securityOrigin,
-                            QWebEnginePage::Feature Feature);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+  void handlePermission(QWebEnginePermission permission);
+#else
+  void handleFeatureRequest(QWebEnginePage *page, const QUrl &origin,
+                            QWebEnginePage::Feature feature);
+#endif
 
-  static bool isTrustedWhastapp(const QUrl &origin);
-
-private:
-  void grant(QWebEnginePage *page, const QUrl &origin,
-             QWebEnginePage::Feature f);
-  void deny(QWebEnginePage *page, const QUrl &origin,
-            QWebEnginePage::Feature f);
+  static bool isTrustedWhatsApp(const QUrl &origin);
 };

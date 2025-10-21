@@ -1,25 +1,32 @@
+#include "ClientPage.h"
 #include "PermissionHandler.h"
 #include "WebProfileManager.h"
 #include <QApplication>
 #include <QScreen>
-#include <QWebEnginePage>
 #include <QWebEngineView>
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
   QApplication::setApplicationName("Whatsie");
-  QApplication::setOrganizationName("Luna");
-  QApplication::setApplicationVersion("0.0.1.0");
+  QApplication::setOrganizationName("Whatsie");
+  QApplication::setApplicationVersion("0.1.0");
   QApplication app(argc, argv);
 
   WebProfileManager profileMgr;
-  auto *page = new QWebEnginePage(profileMgr.profile());
+  auto *page = new ClientPage(profileMgr.profile());
 
   PermissionHandler perms;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+  QObject::connect(
+      page, &QWebEnginePage::permissionRequested, &perms,
+      [&perms](QWebEnginePermission p) { perms.handlePermission(p); });
+#else
   QObject::connect(
       page, &QWebEnginePage::featurePermissionRequested, &perms,
-      [ page, &perms ](const QUrl &origin, QWebEnginePage::Feature f){
+      [page, &perms](const QUrl &origin, QWebEnginePage::Feature f) {
         perms.handleFeatureRequest(page, origin, f);
       });
+#endif
 
   auto *view = new QWebEngineView;
   view->setPage(page);

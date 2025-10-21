@@ -1,34 +1,43 @@
 #include "PermissionHandler.h"
-#include <qobject.h>
-#include <qurl.h>
-#include <qwebenginepage.h>
 
-static inline QString kWaOriginHost() {
-  return QStringLiteral("web.whatsapp.com");
-}
+static inline QString kWaHost() { return QStringLiteral("web.whatsapp.com"); }
 
 PermissionHandler::PermissionHandler(QObject *parent) : QObject(parent) {}
 
-bool PermissionHandler::isTrustedWhastapp(const QUrl &origin) {
-  return origin.scheme().startsWith("http") && origin.host() == kWaOriginHost();
+bool PermissionHandler::isTrustedWhatsApp(const QUrl &origin) {
+  return origin.scheme().startsWith("http") && origin.host() == kWaHost();
 }
 
-void PermissionHandler::grant(QWebEnginePage *page, const QUrl &origin,
-                              QWebEnginePage::Feature f) {
-  page->setFeaturePermission(origin, f,
-                             QWebEnginePage::PermissionGrantedByUser);
-}
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+void PermissionHandler::handlePermission(QWebEnginePermission permission) {
+  const QUrl origin = permission.origin();
+  const auto kind = permission.permissionType();
 
-void PermissionHandler::deny(QWebEnginePage *page, const QUrl &origin,
-                             QWebEnginePage::Feature f) {
-  page->setFeaturePermission(origin, f, QWebEnginePage::PermissionDeniedByUser);
-}
+  if (!isTrustedWhatsApp(origin)) {
+    permission.deny();
+    return;
+  }
 
+  using PT = QWebEnginePermission::PermissionType;
+  switch (kind) {
+  case PT::Notifications:
+  case PT::MediaAudioCapture:
+  case PT::MediaVideoCapture:
+  case PT::MediaAudioVideoCapture:
+    permission.grant();
+    break;
+  default:
+    permission.deny();
+    break;
+  }
+}
+#else
 void PermissionHandler::handleFeatureRequest(QWebEnginePage *page,
                                              const QUrl &origin,
                                              QWebEnginePage::Feature feature) {
-  if (!isTrustedWhastapp(origin)) {
-    deny(page, origin, feature);
+  if (!isTrustedWhatsApp(origin)) {
+    page->setFeaturePermission(origin, feature,
+                               QWebEnginePage::PermissionDeniedByUser);
     return;
   }
 
@@ -37,10 +46,13 @@ void PermissionHandler::handleFeatureRequest(QWebEnginePage *page,
   case QWebEnginePage::MediaAudioCapture:
   case QWebEnginePage::MediaVideoCapture:
   case QWebEnginePage::MediaAudioVideoCapture:
-    grant(page, origin, feature);
+    page->setFeaturePermission(origin, feature,
+                               QWebEnginePage::PermissionGrantedByUser);
     break;
   default:
-    deny(page, origin, feature);
+    page->setFeaturePermission(origin, feature,
+                               QWebEnginePage::PermissionDeniedByUser);
     break;
   }
 }
+#endif
