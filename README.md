@@ -28,8 +28,30 @@ sudo dpkg -i build/whisper_*.deb
 sudo apt -f install
 ```
 
+### Fedora / openSUSE / RHEL
+
+```bash
+cpack -G RPM -B build
+sudo dnf install ./build/whisper-*.x86_64.rpm
+sudo zypper install ./build/whisper-*.x86_64.rpm
+```
+
 ## Uninstall
+
+### Arch Linux
 
 ```bash
 sudo pacman -Rns whisper
+```
+
+### Debian / Ubuntu
+
+```bash
+sudo apt remove whisper
+```
+
+### Fedora / RHEL / openSUSE
+
+```bash
+sudo dnf remove whisper
 ```
