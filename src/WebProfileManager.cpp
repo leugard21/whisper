@@ -13,7 +13,7 @@ WebProfileManager::WebProfileManager() {
   const QString base = appDataDir();
   ensureDirs(base);
 
-  m_profile = new QWebEngineProfile(QStringLiteral("whatsie_profile"));
+  m_profile = new QWebEngineProfile(QStringLiteral("whisper_profile"));
   m_profile->setPersistentCookiesPolicy(
       QWebEngineProfile::ForcePersistentCookies);
   m_profile->setPersistentStoragePath(base + "/storage");
@@ -27,7 +27,7 @@ WebProfileManager::WebProfileManager() {
 QString WebProfileManager::appDataDir() const {
   const QString dir =
       QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  return dir.isEmpty() ? QDir::homePath() + "/.whatsie" : dir;
+  return dir.isEmpty() ? QDir::homePath() + "/.whisper" : dir;
 }
 
 void WebProfileManager::ensureDirs(const QString &path) const {

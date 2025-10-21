@@ -2,6 +2,6 @@
   <qresource prefix="/">
     <file>icons/tray.png</file>
     <file>icons/tray_unread.png</file>
-    <file>icons/whatsie.png</file>         
+    <file>icons/whisper.png</file>         
   </qresource>
 </RCC>

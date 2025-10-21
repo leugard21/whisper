@@ -9,7 +9,7 @@
 #include <qstandardpaths.h>
 #include <qstringview.h>
 
-static constexpr const char *kDesktopFileName = "whatsie.desktop";
+static constexpr const char *kDesktopFileName = "whisper.desktop";
 
 QString AutostartManager::autostartDir() {
   QString cfg =
@@ -27,14 +27,14 @@ QString AutostartManager::desktopPath() {
 
 QString AutostartManager::desktopContents() {
   const QString exec = QCoreApplication::applicationFilePath();
-  const QString iconName = QStringLiteral("whatsie");
+  const QString iconName = QStringLiteral("whisper");
 
   QString text;
   QTextStream out(&text);
   out << "[Desktop Entry]\n";
   out << "Type=Application\n";
   out << "Version=1.1.0\n";
-  out << "Name=Whatsie\n";
+  out << "Name=Whisper\n";
   out << "Comment=WhatsApp Web Client on Linux\n";
   out << "Exec=" << exec << "\n";
   out << "Icon=" << iconName << "\n";

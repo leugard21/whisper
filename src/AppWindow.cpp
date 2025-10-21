@@ -47,8 +47,8 @@ void AppWindow::setupUi() {
   m_view->setPage(m_page);
   setCentralWidget(m_view);
 
-  setWindowTitle(QStringLiteral("Whatsie"));
-  setWindowIcon(themeOrFallback("whatsie", ":/icons/whatsie.png"));
+  setWindowTitle(QStringLiteral("Whisper"));
+  setWindowIcon(themeOrFallback("whisper", ":/icons/whisper.png"));
   resize(1100, 760);
 
   const QRect avail = screen()->availableGeometry();
@@ -87,8 +87,8 @@ void AppWindow::setupTray() {
   auto *actQuit = m_trayMenu->addAction(tr("Quit"));
   connect(actQuit, &QAction::triggered, qApp, &QApplication::quit);
 
-  m_tray->setIcon(themeOrFallback("whatsie", ":/icons/tray.png"));
-  m_tray->setToolTip(tr("Whatsie"));
+  m_tray->setIcon(themeOrFallback("whisper", ":/icons/tray.png"));
+  m_tray->setToolTip(tr("Whisper"));
   m_tray->setContextMenu(m_trayMenu);
   m_tray->show();
 
@@ -103,7 +103,7 @@ void AppWindow::closeEvent(QCloseEvent *e) {
     hideToTray();
     if (!m_shownMinimizeHint) {
       m_tray->showMessage(
-          tr("Whatsie"),
+          tr("Whisper"),
           tr("Still running here. Click the tray icon to re-open."),
           QSystemTrayIcon::Information, 3000);
       m_shownMinimizeHint = true;
@@ -180,7 +180,7 @@ void AppWindow::createDevTools() {
 
   m_page->setDevToolsPage(devPage);
 
-  m_devtoolsView->setWindowTitle(QStringLiteral("Whatsie DevTools"));
+  m_devtoolsView->setWindowTitle(QStringLiteral("Whisper DevTools"));
   m_devtoolsView->resize(900, 700);
   m_devtoolsView->show();
   m_devtoolsView->raise();
@@ -264,11 +264,11 @@ void AppWindow::updateTrayUnread(int count) {
 
   if (count > 0) {
     m_tray->setIcon(
-        themeOrFallback("whatsie-unread", ":/icons/tray_unread.png"));
-    m_tray->setToolTip(tr("Whatsie — %1 unread").arg(count));
+        themeOrFallback("whisper-unread", ":/icons/tray_unread.png"));
+    m_tray->setToolTip(tr("Whisper — %1 unread").arg(count));
   } else {
-    m_tray->setIcon(themeOrFallback("whatsie", ":/icons/tray.png"));
-    m_tray->setToolTip(tr("Whatsie"));
+    m_tray->setIcon(themeOrFallback("whisper", ":/icons/tray.png"));
+    m_tray->setToolTip(tr("Whisper"));
   }
 }
 

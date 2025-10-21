@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=Whatsie
+Name=Whisper
 Comment=Whatsapp Web Client on Linux
-Exec=whatsie %U
-Icon=whatsie
+Exec=whisper %U
+Icon=whisper
 Terminal=false
 Categories=Network;
-StartupWMClass=Whatsie
+StartupWMClass=Whisper

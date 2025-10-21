@@ -1,6 +1,6 @@
-# Whatsie
+# Whisper
 
-Whatsie is a native desktop client for linux built with **C++** and **Qt 6**, wrapping the official [web.whatsapp.com](https://web.whatsapp.com) interface.  
+Whisper is a native desktop client for linux built with **C++** and **Qt 6**, wrapping the official [web.whatsapp.com](https://web.whatsapp.com) interface.  
 It provides a fast, clean, and persistent WhatsApp experience that integrates smoothly with Linux desktop environments.
 
 ## Build
@@ -8,7 +8,7 @@ It provides a fast, clean, and persistent WhatsApp experience that integrates sm
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
-./build/whatsie
+./build/whisper
 ```
 
 ## Install
@@ -17,19 +17,19 @@ cmake --build build -j
 
 ```bash
 makepkg -sf
-sudo pacman -U whatsie-*.pkg.tar.zst
+sudo pacman -U whisper-*.pkg.tar.zst
 ```
 
 ### Debian / Ubuntu
 
 ```bash
 cpack -G DEB -B build
-sudo dpkg -i build/whatsie_*.deb
+sudo dpkg -i build/whisper_*.deb
 sudo apt -f install
 ```
 
 ## Uninstall
 
 ```bash
-sudo pacman -Rns whatsie
+sudo pacman -Rns whisper
 ```

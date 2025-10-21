@@ -11,14 +11,14 @@
 #include <QWebEngineView>
 
 int main(int argc, char *argv[]) {
-  QApplication::setApplicationName("Whatsie");
-  QApplication::setOrganizationName("Whatsie");
+  QApplication::setApplicationName("Whisper");
+  QApplication::setOrganizationName("Luna");
   QApplication::setApplicationVersion("0.1.0");
   QApplication app(argc, argv);
 
   SingleInstance instance(Settings::lockFilePath());
   if (!instance.tryLock()) {
-    QMessageBox::information(nullptr, "Whatsie", "Whatsie is already running.");
+    QMessageBox::information(nullptr, "Whisper", "Whisper is already running.");
     return 0;
   }
 
