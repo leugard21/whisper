@@ -1,3 +1,4 @@
+#include "PermissionHandler.h"
 #include "WebProfileManager.h"
 #include <QApplication>
 #include <QScreen>
@@ -12,6 +13,13 @@ int main(int argc, char **argv) {
 
   WebProfileManager profileMgr;
   auto *page = new QWebEnginePage(profileMgr.profile());
+
+  PermissionHandler perms;
+  QObject::connect(
+      page, &QWebEnginePage::featurePermissionRequested, &perms,
+      [ page, &perms ](const QUrl &origin, QWebEnginePage::Feature f){
+        perms.handleFeatureRequest(page, origin, f);
+      });
 
   auto *view = new QWebEngineView;
   view->setPage(page);

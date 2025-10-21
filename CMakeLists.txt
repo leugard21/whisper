@@ -13,6 +13,8 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
 add_executable(whatsie
     src/main.cpp
     src/WebProfileManager.cpp
+    src/ClientPage.cpp
+    src/PermissionHandler.cpp
 )
 
 target_link_libraries(whatsie PRIVATE
