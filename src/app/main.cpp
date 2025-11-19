@@ -1,5 +1,6 @@
 #include "../app/AppWindow.h"
 #include "../io/Downloader.h"
+#include "../system/NotificationHandler.h"
 #include "../system/Settings.h"
 #include "../system/SingleInstance.h"
 #include "../web/ClientPage.h"
@@ -9,6 +10,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QScreen>
+#include <QWebEngineNotification>
 #include <QWebEngineView>
 
 int main(int argc, char *argv[]) {
@@ -27,6 +29,15 @@ int main(int argc, char *argv[]) {
   WebProfileManager profileMgr;
   auto *profile = profileMgr.profile();
   auto *page = new ClientPage(profile);
+
+  static NotificationHandler notify;
+
+  profile->setNotificationPresenter(
+      [&](std::unique_ptr<QWebEngineNotification> n) {
+        QIcon icon(":/icons/whisper.png");
+        notify.show(n->title(), n->message(), icon);
+        n->show();
+      });
 
   PermissionHandler perms;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)

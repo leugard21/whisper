@@ -29,6 +29,7 @@ add_executable(whisper
     src/system/AutostartManager.cpp
     src/system/SingleInstance.cpp
     src/system/Settings.cpp
+    src/system/NotificationHandler.cpp
 
     src/io/Downloader.cpp
 
