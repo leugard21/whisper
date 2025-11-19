@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Version=1.0
+Version=1.2.0
 Name=Whisper
 Comment=Whatsapp Web Client on Linux
 Exec=whisper %U

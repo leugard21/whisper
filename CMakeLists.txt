@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Whisper VERSION 1.1.0 LANGUAGES CXX)
+project(Whisper VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,9 +16,6 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
     WebEngineCore
     WebEngineWidgets
 )
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBNOTIFY REQUIRED libnotify)
 
 add_executable(whisper
     src/app/main.cpp
@@ -46,7 +43,6 @@ target_link_libraries(whisper PRIVATE
     Qt6::WebEngineCore
     Qt6::WebEngineWidgets
 )
-
 
 if(UNIX AND NOT APPLE)
     target_compile_definitions(whisper PRIVATE QT_NO_FOREACH QT_DEPRECATED_WARNINGS)
