@@ -1,5 +1,5 @@
 #include "AppWindow.h"
-#include "AutostartManager.h"
+#include "../system/AutostartManager.h"
 
 #include <QAction>
 #include <QApplication>

@@ -18,17 +18,22 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
 )
 
 add_executable(whisper
-    src/main.cpp
-    src/WebProfileManager.cpp
-    src/ClientPage.cpp
-    src/PermissionHandler.cpp
-    src/AppWindow.cpp
-    src/Downloader.cpp
-    src/Settings.cpp
-    src/SingleInstance.cpp
-    src/AutostartManager.cpp
+    src/app/main.cpp
+    src/app/AppWindow.cpp
+
+    src/web/ClientPage.cpp
+    src/web/WebProfileManager.cpp
+    src/web/PermissionHandler.cpp
+
+    src/system/AutostartManager.cpp
+    src/system/SingleInstance.cpp
+    src/system/Settings.cpp
+
+    src/io/Downloader.cpp
+
     resources/resources.qrc
 )
+
 
 target_link_libraries(whisper PRIVATE
     Qt6::Core

@@ -1,10 +1,10 @@
+#include "../io/Downloader.h"
+#include "../system/Settings.h"
+#include "../system/SingleInstance.h"
+#include "../web/ClientPage.h"
+#include "../web/PermissionHandler.h"
+#include "../web/WebProfileManager.h"
 #include "AppWindow.h"
-#include "ClientPage.h"
-#include "Downloader.h"
-#include "PermissionHandler.h"
-#include "Settings.h"
-#include "SingleInstance.h"
-#include "WebProfileManager.h"
 
 #include <QApplication>
 #include <QMessageBox>

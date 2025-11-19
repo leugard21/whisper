@@ -1,5 +1,5 @@
 #include "WebProfileManager.h"
-#include "Settings.h"
+#include "../system/Settings.h"
 
 #include <QDir>
 #include <QWebEngineSettings>
