@@ -1,17 +1,15 @@
 #include "WebProfileManager.h"
+#include "Settings.h"
+
 #include <QDir>
-#include <QFileInfo>
-#include <QStandardPaths>
 #include <QWebEngineSettings>
 
-static inline QString modernDesktopUA() {
-  return QStringLiteral("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36");
-}
+static constexpr const char *kUserAgent =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
 WebProfileManager::WebProfileManager() {
-  const QString base = appDataDir();
-  ensureDirs(base);
+  const QString base = Settings::appDataDir();
 
   m_profile = new QWebEngineProfile(QStringLiteral("whisper_profile"));
   m_profile->setPersistentCookiesPolicy(
@@ -19,27 +17,14 @@ WebProfileManager::WebProfileManager() {
   m_profile->setPersistentStoragePath(base + "/storage");
   m_profile->setCachePath(base + "/cache");
   m_profile->setDownloadPath(QDir::homePath() + "/Downloads");
-  m_profile->setHttpUserAgent(modernDesktopUA());
+  m_profile->setHttpUserAgent(QString::fromLatin1(kUserAgent));
 
-  applySettings(m_profile);
-}
-
-QString WebProfileManager::appDataDir() const {
-  const QString dir =
-      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  return dir.isEmpty() ? QDir::homePath() + "/.whisper" : dir;
-}
-
-void WebProfileManager::ensureDirs(const QString &path) const {
-  QDir(path).mkpath(".");
-  QDir(path).mkpath("storage");
-  QDir(path).mkpath("cache");
-}
-
-void WebProfileManager::applySettings(QWebEngineProfile *p) {
-  auto *s = p->settings();
+  auto *s = m_profile->settings();
   s->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
   s->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
   s->setAttribute(QWebEngineSettings::AutoLoadImages, true);
   s->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, true);
+
+  QDir(base).mkpath("storage");
+  QDir(base).mkpath("cache");
 }

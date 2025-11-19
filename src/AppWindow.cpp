@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QCloseEvent>
+#include <QDir>
 #include <QIcon>
 #include <QMenu>
 #include <QMoveEvent>
@@ -16,12 +17,10 @@
 #include <QWebEngineProfile>
 #include <QWebEngineView>
 
-static QIcon themeOrFallback(const char *themeName,
-                             const char *fallbackResource) {
-  QIcon themed = QIcon::fromTheme(themeName);
-  if (!themed.isNull())
-    return themed;
-  return QIcon(QLatin1String(fallbackResource));
+static inline QIcon themeOrFallback(const char *themeName,
+                                    const char *fallback) {
+  const QIcon themed = QIcon::fromTheme(themeName);
+  return !themed.isNull() ? themed : QIcon(fallback);
 }
 
 AppWindow::AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
@@ -35,9 +34,8 @@ AppWindow::AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
   connect(m_page, &QWebEnginePage::titleChanged, this,
           &AppWindow::onTitleChanged);
 
-  if (m_view && m_view->url().isEmpty()) {
+  if (m_view && m_view->url().isEmpty())
     m_view->setUrl(QUrl("https://web.whatsapp.com/"));
-  }
 }
 
 AppWindow::~AppWindow() { destroyDevTools(); }
@@ -47,8 +45,9 @@ void AppWindow::setupUi() {
   m_view->setPage(m_page);
   setCentralWidget(m_view);
 
-  setWindowTitle(QStringLiteral("Whisper"));
+  setWindowTitle("Whisper");
   setWindowIcon(themeOrFallback("whisper", ":/icons/whisper.png"));
+
   resize(1100, 760);
 
   const QRect avail = screen()->availableGeometry();
@@ -76,19 +75,19 @@ void AppWindow::setupTray() {
   m_actAutostart = m_trayMenu->addAction(tr("Start on Login"));
   m_actAutostart->setCheckable(true);
   m_actAutostart->setChecked(AutostartManager::isEnabled());
-  connect(m_actAutostart, &QAction::toggled, this,
-          [](bool on) { AutostartManager::setEnabled(on); });
+  connect(m_actAutostart, &QAction::toggled,
+          [](bool en) { AutostartManager::setEnabled(en); });
 
   m_trayMenu->addSeparator();
-  auto *actReload = m_trayMenu->addAction(tr("Reload"));
+  QAction *actReload = m_trayMenu->addAction(tr("Reload"));
   connect(actReload, &QAction::triggered, this, &AppWindow::reloadPage);
 
   m_trayMenu->addSeparator();
-  auto *actQuit = m_trayMenu->addAction(tr("Quit"));
+  QAction *actQuit = m_trayMenu->addAction(tr("Quit"));
   connect(actQuit, &QAction::triggered, qApp, &QApplication::quit);
 
   m_tray->setIcon(themeOrFallback("whisper", ":/icons/tray.png"));
-  m_tray->setToolTip(tr("Whisper"));
+  m_tray->setToolTip("Whisper");
   m_tray->setContextMenu(m_trayMenu);
   m_tray->show();
 
@@ -111,6 +110,7 @@ void AppWindow::closeEvent(QCloseEvent *e) {
     e->ignore();
     return;
   }
+
   QMainWindow::closeEvent(e);
 }
 
@@ -132,27 +132,27 @@ void AppWindow::resizeEvent(QResizeEvent *e) {
 
 void AppWindow::restoreWindowStateFromSettings() {
   QSettings s;
-  const bool wasMax = s.value("ui/maximized", false).toBool();
-  const QByteArray geom = s.value("ui/geometry").toByteArray();
 
-  if (!wasMax && !geom.isEmpty()) {
+  const QByteArray geom = s.value("ui/geometry").toByteArray();
+  const bool wasMax = s.value("ui/maximized", false).toBool();
+
+  if (!geom.isEmpty() && !wasMax)
     restoreGeometry(geom);
-  }
-  if (wasMax) {
+
+  if (wasMax)
     setWindowState(windowState() | Qt::WindowMaximized);
-  }
 }
 
 void AppWindow::saveWindowStateToSettings() {
   QSettings s;
+
   const bool maxNow = isMaximized();
   s.setValue("ui/maximized", maxNow);
 
-  if (!maxNow) {
+  if (!maxNow)
     s.setValue("ui/geometry", saveGeometry());
-  } else if (!s.contains("ui/geometry")) {
+  else if (!s.contains("ui/geometry"))
     s.setValue("ui/geometry", saveGeometry());
-  }
 }
 
 void AppWindow::reloadPage() {
@@ -180,7 +180,7 @@ void AppWindow::createDevTools() {
 
   m_page->setDevToolsPage(devPage);
 
-  m_devtoolsView->setWindowTitle(QStringLiteral("Whisper DevTools"));
+  m_devtoolsView->setWindowTitle("Whisper DevTools");
   m_devtoolsView->resize(900, 700);
   m_devtoolsView->show();
   m_devtoolsView->raise();
@@ -190,6 +190,7 @@ void AppWindow::createDevTools() {
 void AppWindow::destroyDevTools() {
   if (!m_devtoolsView)
     return;
+
   m_page->setDevToolsPage(nullptr);
   m_devtoolsView->deleteLater();
   m_devtoolsView = nullptr;
@@ -205,38 +206,25 @@ void AppWindow::toggleDevTools() {
 void AppWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason) {
   if (reason == QSystemTrayIcon::Trigger ||
       reason == QSystemTrayIcon::DoubleClick) {
-    if (isHidden() || isMinimized()) {
+    if (isHidden() || isMinimized())
       showFromTray();
-    } else {
+    else
       hideToTray();
-    }
   }
 }
 
 void AppWindow::updateShowHideLabel() {
   if (!m_actShowHide)
     return;
+
   m_actShowHide->setText((isHidden() || isMinimized()) ? tr("Show")
                                                        : tr("Hide"));
 }
 
-void AppWindow::restoreFromTray() {
-  setWindowState(windowState() & ~Qt::WindowMinimized);
-
-  QSettings s;
-  const bool shouldMax = s.value("ui/maximized", false).toBool();
-  if (shouldMax) {
-    showMaximized();
-  } else {
-    showNormal();
-  }
-
+void AppWindow::showFromTray() {
+  restoreWindowStateFromSettings();
   raise();
   activateWindow();
-}
-
-void AppWindow::showFromTray() {
-  restoreFromTray();
   updateShowHideLabel();
 }
 
@@ -246,7 +234,7 @@ void AppWindow::hideToTray() {
 }
 
 int AppWindow::extractUnreadCount(const QString &title) {
-  if (title.size() >= 3 && title.startsWith('(')) {
+  if (title.startsWith('(')) {
     const int end = title.indexOf(')');
     if (end > 1) {
       bool ok = false;
@@ -268,11 +256,10 @@ void AppWindow::updateTrayUnread(int count) {
     m_tray->setToolTip(tr("Whisper — %1 unread").arg(count));
   } else {
     m_tray->setIcon(themeOrFallback("whisper", ":/icons/tray.png"));
-    m_tray->setToolTip(tr("Whisper"));
+    m_tray->setToolTip("Whisper");
   }
 }
 
 void AppWindow::onTitleChanged(const QString &title) {
-  const int unread = extractUnreadCount(title);
-  updateTrayUnread(unread);
+  updateTrayUnread(extractUnreadCount(title));
 }

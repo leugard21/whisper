@@ -1,14 +1,16 @@
 #include "ClientPage.h"
+
 #include <QDesktopServices>
+#include <QUrl>
 #include <QWebEngineProfile>
 
-static inline QString waHost() { return QStringLiteral("web.whatsapp.com"); }
+static inline QString kWaHost() { return QStringLiteral("web.whatsapp.com"); }
 
 ClientPage::ClientPage(QWebEngineProfile *profile, QObject *parent)
     : QWebEnginePage(profile, parent) {}
 
 bool ClientPage::isWhatsappDomain(const QUrl &url) const {
-  return url.scheme().startsWith("http") && (url.host() == waHost());
+  return url.scheme().startsWith("http") && url.host() == kWaHost();
 }
 
 void ClientPage::openExternally(const QUrl &url) const {
@@ -16,15 +18,12 @@ void ClientPage::openExternally(const QUrl &url) const {
 }
 
 bool ClientPage::acceptNavigationRequest(const QUrl &url, NavigationType type,
-                                         bool isMainFrame) {
-  Q_UNUSED(isMainFrame);
-
+                                         bool) {
   if (isWhatsappDomain(url))
     return true;
 
-  if (type == QWebEnginePage::NavigationTypeLinkClicked ||
-      type == QWebEnginePage::NavigationTypeTyped ||
-      type == QWebEnginePage::NavigationTypeOther) {
+  if (type == NavigationTypeLinkClicked || type == NavigationTypeTyped ||
+      type == NavigationTypeOther) {
     openExternally(url);
     return false;
   }
@@ -36,11 +35,11 @@ QWebEnginePage *ClientPage::createWindow(WebWindowType) {
   auto *p = new ClientPage(profile());
   connect(p, &QWebEnginePage::urlChanged, this, [this, p](const QUrl &u) {
     if (!u.isEmpty()) {
-      if (isWhatsappDomain(u)) {
+      if (isWhatsappDomain(u))
         this->load(u);
-      } else {
+      else
         openExternally(u);
-      }
+
       p->deleteLater();
     }
   });

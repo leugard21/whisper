@@ -1,4 +1,5 @@
 #include "Settings.h"
+
 #include <QDir>
 #include <QStandardPaths>
 
@@ -7,6 +8,7 @@ QString Settings::appDataDir() {
       QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   if (dir.isEmpty())
     dir = QDir::homePath() + "/.whisper";
+
   QDir(dir).mkpath(".");
   return dir;
 }

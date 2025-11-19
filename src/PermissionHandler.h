@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QObject>
 #include <QUrl>
 
@@ -10,6 +11,7 @@
 
 class PermissionHandler : public QObject {
   Q_OBJECT
+
 public:
   explicit PermissionHandler(QObject *parent = nullptr);
 

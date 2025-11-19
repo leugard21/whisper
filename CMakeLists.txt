@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(Whisper VERSION 1.1.0 LANGUAGES CXX)
+add_compile_definitions(WHISPER_VERSION="${PROJECT_VERSION}")
+
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,7 +10,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS
-    Core Gui Widgets WebEngineCore WebEngineWidgets)
+    Core
+    Gui
+    Widgets
+    WebEngineCore
+    WebEngineWidgets
+)
 
 add_executable(whisper
     src/main.cpp
@@ -24,11 +31,18 @@ add_executable(whisper
 )
 
 target_link_libraries(whisper PRIVATE
-    Qt6::Core Qt6::Gui Qt6::Widgets Qt6::WebEngineCore Qt6::WebEngineWidgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::WebEngineCore
+    Qt6::WebEngineWidgets
 )
 
 if(UNIX AND NOT APPLE)
-    target_compile_definitions(whisper PRIVATE QT_NO_FOREACH QT_DEPRECATED_WARNINGS)
+    target_compile_definitions(whisper PRIVATE
+        QT_NO_FOREACH
+        QT_DEPRECATED_WARNINGS
+    )
 endif()
 
 install(TARGETS whisper
@@ -43,6 +57,7 @@ install(FILES
     resources/icons/whisper.png
     DESTINATION share/icons/hicolor/256x256/apps
 )
+
 install(FILES
     resources/icons/whisper.svg
     DESTINATION share/icons/hicolor/scalable/apps
