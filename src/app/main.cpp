@@ -1,16 +1,16 @@
 #include "../app/AppWindow.h"
 #include "../io/Downloader.h"
-#include "../system/NotificationHandler.h"
 #include "../system/Settings.h"
 #include "../system/SingleInstance.h"
 #include "../web/ClientPage.h"
 #include "../web/PermissionHandler.h"
+#include "../web/ReloadController.h"
 #include "../web/WebProfileManager.h"
 
 #include <QApplication>
 #include <QMessageBox>
 #include <QScreen>
-#include <QWebEngineNotification>
+#include <QWebChannel>
 #include <QWebEngineView>
 
 int main(int argc, char *argv[]) {
@@ -30,14 +30,39 @@ int main(int argc, char *argv[]) {
   auto *profile = profileMgr.profile();
   auto *page = new ClientPage(profile);
 
-  static NotificationHandler notify;
+  auto *channel = new QWebChannel(page);
+  auto *reloadController = new ReloadController(page);
+  channel->registerObject("ReloadController", reloadController);
+  page->setWebChannel(channel);
 
-  profile->setNotificationPresenter(
-      [&](std::unique_ptr<QWebEngineNotification> n) {
-        QIcon icon(":/icons/whisper.png");
-        notify.show(n->title(), n->message(), icon);
-        n->show();
-      });
+  QObject::connect(reloadController, &ReloadController::triggerReload, page,
+                   [page]() { page->triggerAction(QWebEnginePage::Reload); });
+
+  page->runJavaScript(R"JS(
+(function() {
+    if (window.__whisperAutoReload)
+        return;
+    window.__whisperAutoReload = true;
+
+    function check() {
+        const texts = Array.from(document.querySelectorAll("div"))
+            .map(e => e.innerText || "");
+
+        if (texts.some(t =>
+            t.includes("Trying to reach phone") ||
+            t.includes("Phone not connected") ||
+            t.includes("Computer not connected") ||
+            t.includes("Reconnecting") ||
+            t.includes("Connecting")
+        )) {
+            if (window.ReloadController)
+                window.ReloadController.triggerReload();
+        }
+    }
+
+    setInterval(check, 4000);
+})();
+)JS");
 
   PermissionHandler perms;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)

@@ -17,6 +17,9 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
     WebEngineWidgets
 )
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBNOTIFY REQUIRED libnotify)
+
 add_executable(whisper
     src/app/main.cpp
     src/app/AppWindow.cpp
@@ -25,11 +28,11 @@ add_executable(whisper
     src/web/ClientPage.cpp
     src/web/WebProfileManager.cpp
     src/web/PermissionHandler.cpp
+    src/web/ReloadController.cpp
 
     src/system/AutostartManager.cpp
     src/system/SingleInstance.cpp
     src/system/Settings.cpp
-    src/system/NotificationHandler.cpp
 
     src/io/Downloader.cpp
 
@@ -43,6 +46,7 @@ target_link_libraries(whisper PRIVATE
     Qt6::WebEngineCore
     Qt6::WebEngineWidgets
 )
+
 
 if(UNIX AND NOT APPLE)
     target_compile_definitions(whisper PRIVATE QT_NO_FOREACH QT_DEPRECATED_WARNINGS)
