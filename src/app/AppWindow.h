@@ -55,6 +55,7 @@ private:
 
   QAction *m_actShowHide = nullptr;
   QAction *m_actAutostart = nullptr;
+  QAction *m_actStartMinimized = nullptr;
 
   bool m_shownMinimizeHint = false;
 };

@@ -45,7 +45,10 @@ int main(int argc, char *argv[]) {
   dl.attach(profile);
 
   AppWindow win(profile, page);
-  win.show();
+  if (Settings::startMinimized())
+    win.hide();
+  else
+    win.show();
 
   page->load(QUrl("https://web.whatsapp.com/"));
   return app.exec();

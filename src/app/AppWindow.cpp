@@ -1,5 +1,6 @@
 #include "AppWindow.h"
 #include "../system/AutostartManager.h"
+#include "../system/Settings.h"
 
 #include <QAction>
 #include <QApplication>
@@ -77,6 +78,12 @@ void AppWindow::setupTray() {
   m_actAutostart->setChecked(AutostartManager::isEnabled());
   connect(m_actAutostart, &QAction::toggled,
           [](bool en) { AutostartManager::setEnabled(en); });
+
+  m_actStartMinimized = m_trayMenu->addAction(tr("Start Minimized"));
+  m_actStartMinimized->setCheckable(true);
+  m_actStartMinimized->setChecked(Settings::startMinimized());
+  connect(m_actStartMinimized, &QAction::toggled,
+          [](bool en) { Settings::setStartMinimized(en); });
 
   m_trayMenu->addSeparator();
   QAction *actReload = m_trayMenu->addAction(tr("Reload"));
