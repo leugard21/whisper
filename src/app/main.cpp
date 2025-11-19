@@ -1,19 +1,20 @@
+#include "../app/AppWindow.h"
 #include "../io/Downloader.h"
 #include "../system/Settings.h"
 #include "../system/SingleInstance.h"
 #include "../web/ClientPage.h"
 #include "../web/PermissionHandler.h"
 #include "../web/WebProfileManager.h"
-#include "AppWindow.h"
 
 #include <QApplication>
 #include <QMessageBox>
+#include <QScreen>
 #include <QWebEngineView>
 
 int main(int argc, char *argv[]) {
   QApplication::setApplicationName("Whisper");
   QApplication::setOrganizationName("Luna");
-  QApplication::setApplicationVersion(WHISPER_VERSION);
+  QApplication::setApplicationVersion("1.1.0");
 
   QApplication app(argc, argv);
 
@@ -28,7 +29,6 @@ int main(int argc, char *argv[]) {
   auto *page = new ClientPage(profile);
 
   PermissionHandler perms;
-
 #if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
   QObject::connect(
       page, &QWebEnginePage::permissionRequested, &perms,
@@ -45,11 +45,15 @@ int main(int argc, char *argv[]) {
   dl.attach(profile);
 
   AppWindow win(profile, page);
-  if (Settings::startMinimized())
+
+  if (Settings::startMinimized()) {
+    win.setStartupHidden(true);
     win.hide();
-  else
+  } else {
     win.show();
+  }
 
   page->load(QUrl("https://web.whatsapp.com/"));
+
   return app.exec();
 }

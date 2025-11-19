@@ -4,11 +4,12 @@
 #include <QPointer>
 #include <QSystemTrayIcon>
 
-class QWebEngineView;
+class QAction;
+class QMenu;
 class QWebEnginePage;
 class QWebEngineProfile;
-class QMenu;
-class QAction;
+class QWebEngineView;
+class SettingsDialog;
 
 class AppWindow : public QMainWindow {
   Q_OBJECT
@@ -17,6 +18,8 @@ public:
   AppWindow(QWebEngineProfile *profile, QWebEnginePage *page,
             QWidget *parent = nullptr);
   ~AppWindow() override;
+
+  void setStartupHidden(bool hidden) { m_startupHidden = hidden; }
 
 protected:
   void closeEvent(QCloseEvent *event) override;
@@ -32,13 +35,16 @@ private slots:
   void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
   void showFromTray();
   void hideToTray();
+  void openSettings();
 
 private:
   void setupUi();
   void setupShortcuts();
   void setupTray();
+
   void restoreWindowStateFromSettings();
   void saveWindowStateToSettings();
+
   void updateShowHideLabel();
   void createDevTools();
   void destroyDevTools();
@@ -56,6 +62,8 @@ private:
   QAction *m_actShowHide = nullptr;
   QAction *m_actAutostart = nullptr;
   QAction *m_actStartMinimized = nullptr;
+  QAction *m_actSettings = nullptr;
 
   bool m_shownMinimizeHint = false;
+  bool m_startupHidden = false;
 };

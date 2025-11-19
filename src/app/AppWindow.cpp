@@ -1,6 +1,7 @@
 #include "AppWindow.h"
 #include "../system/AutostartManager.h"
 #include "../system/Settings.h"
+#include "SettingsDialog.h"
 
 #include <QAction>
 #include <QApplication>
@@ -56,11 +57,11 @@ void AppWindow::setupUi() {
 }
 
 void AppWindow::setupShortcuts() {
-  auto *sReload = new QShortcut(QKeySequence("Ctrl+R"), this);
-  connect(sReload, &QShortcut::activated, this, &AppWindow::reloadPage);
+  auto *reload = new QShortcut(QKeySequence("Ctrl+R"), this);
+  connect(reload, &QShortcut::activated, this, &AppWindow::reloadPage);
 
-  auto *sDevTools = new QShortcut(QKeySequence("Ctrl+Shift+I"), this);
-  connect(sDevTools, &QShortcut::activated, this, &AppWindow::toggleDevTools);
+  auto *devtools = new QShortcut(QKeySequence("Ctrl+Shift+I"), this);
+  connect(devtools, &QShortcut::activated, this, &AppWindow::toggleDevTools);
 }
 
 void AppWindow::setupTray() {
@@ -86,12 +87,19 @@ void AppWindow::setupTray() {
           [](bool en) { Settings::setStartMinimized(en); });
 
   m_trayMenu->addSeparator();
+
+  m_actSettings = m_trayMenu->addAction(tr("Settings…"));
+  connect(m_actSettings, &QAction::triggered, this, &AppWindow::openSettings);
+
+  m_trayMenu->addSeparator();
+
   QAction *actReload = m_trayMenu->addAction(tr("Reload"));
   connect(actReload, &QAction::triggered, this, &AppWindow::reloadPage);
 
   m_trayMenu->addSeparator();
-  QAction *actQuit = m_trayMenu->addAction(tr("Quit"));
-  connect(actQuit, &QAction::triggered, qApp, &QApplication::quit);
+
+  QAction *quit = m_trayMenu->addAction(tr("Quit"));
+  connect(quit, &QAction::triggered, qApp, &QApplication::quit);
 
   m_tray->setIcon(themeOrFallback("whisper", ":/icons/tray.png"));
   m_tray->setToolTip("Whisper");
@@ -102,44 +110,11 @@ void AppWindow::setupTray() {
           &AppWindow::onTrayActivated);
 }
 
-void AppWindow::closeEvent(QCloseEvent *e) {
-  saveWindowStateToSettings();
-
-  if (m_tray) {
-    hideToTray();
-    if (!m_shownMinimizeHint) {
-      m_tray->showMessage(
-          tr("Whisper"),
-          tr("Still running here. Click the tray icon to re-open."),
-          QSystemTrayIcon::Information, 3000);
-      m_shownMinimizeHint = true;
-    }
-    e->ignore();
-    return;
-  }
-
-  QMainWindow::closeEvent(e);
-}
-
-void AppWindow::moveEvent(QMoveEvent *e) {
-  QMainWindow::moveEvent(e);
-  if (!isMaximized()) {
-    QSettings s;
-    s.setValue("ui/geometry", saveGeometry());
-  }
-}
-
-void AppWindow::resizeEvent(QResizeEvent *e) {
-  QMainWindow::resizeEvent(e);
-  if (!isMaximized()) {
-    QSettings s;
-    s.setValue("ui/geometry", saveGeometry());
-  }
-}
-
 void AppWindow::restoreWindowStateFromSettings() {
-  QSettings s;
+  if (m_startupHidden)
+    return;
 
+  QSettings s;
   const QByteArray geom = s.value("ui/geometry").toByteArray();
   const bool wasMax = s.value("ui/maximized", false).toBool();
 
@@ -151,15 +126,52 @@ void AppWindow::restoreWindowStateFromSettings() {
 }
 
 void AppWindow::saveWindowStateToSettings() {
+  if (m_startupHidden)
+    return;
+
   QSettings s;
-
   const bool maxNow = isMaximized();
-  s.setValue("ui/maximized", maxNow);
 
-  if (!maxNow)
+  s.setValue("ui/maximized", maxNow);
+  s.setValue("ui/geometry", saveGeometry());
+}
+
+void AppWindow::closeEvent(QCloseEvent *e) {
+  saveWindowStateToSettings();
+
+  if (m_tray) {
+    hideToTray();
+
+    if (!m_shownMinimizeHint) {
+      m_tray->showMessage(
+          "Whisper", tr("Still running here. Click the tray icon to re-open."),
+          QSystemTrayIcon::Information, 3000);
+      m_shownMinimizeHint = true;
+    }
+
+    e->ignore();
+    return;
+  }
+
+  QMainWindow::closeEvent(e);
+}
+
+void AppWindow::moveEvent(QMoveEvent *e) {
+  QMainWindow::moveEvent(e);
+
+  if (!isMaximized() && !m_startupHidden) {
+    QSettings s;
     s.setValue("ui/geometry", saveGeometry());
-  else if (!s.contains("ui/geometry"))
+  }
+}
+
+void AppWindow::resizeEvent(QResizeEvent *e) {
+  QMainWindow::resizeEvent(e);
+
+  if (!isMaximized() && !m_startupHidden) {
+    QSettings s;
     s.setValue("ui/geometry", saveGeometry());
+  }
 }
 
 void AppWindow::reloadPage() {
@@ -220,16 +232,13 @@ void AppWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason) {
   }
 }
 
-void AppWindow::updateShowHideLabel() {
-  if (!m_actShowHide)
-    return;
-
-  m_actShowHide->setText((isHidden() || isMinimized()) ? tr("Show")
-                                                       : tr("Hide"));
-}
-
 void AppWindow::showFromTray() {
-  restoreWindowStateFromSettings();
+  if (m_startupHidden) {
+    m_startupHidden = false;
+    restoreWindowStateFromSettings();
+  }
+
+  showNormal();
   raise();
   activateWindow();
   updateShowHideLabel();
@@ -238,6 +247,16 @@ void AppWindow::showFromTray() {
 void AppWindow::hideToTray() {
   hide();
   updateShowHideLabel();
+}
+
+void AppWindow::updateShowHideLabel() {
+  if (!m_actShowHide)
+    return;
+
+  if (isHidden() || isMinimized())
+    m_actShowHide->setText(tr("Show"));
+  else
+    m_actShowHide->setText(tr("Hide"));
 }
 
 int AppWindow::extractUnreadCount(const QString &title) {
@@ -269,4 +288,14 @@ void AppWindow::updateTrayUnread(int count) {
 
 void AppWindow::onTitleChanged(const QString &title) {
   updateTrayUnread(extractUnreadCount(title));
+}
+
+void AppWindow::openSettings() {
+  SettingsDialog dlg(this);
+  dlg.exec();
+
+  if (m_actAutostart)
+    m_actAutostart->setChecked(AutostartManager::isEnabled());
+  if (m_actStartMinimized)
+    m_actStartMinimized->setChecked(Settings::startMinimized());
 }
